@@ -1,2 +1,4 @@
 # SSH keys
 files/id_*
+
+.DS_Store

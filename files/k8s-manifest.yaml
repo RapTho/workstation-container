@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oc-cli-pod
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: oc-cli-data-pvc
+  namespace: oc-cli-pod
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    kubernetes.io/enforce-mountable-secrets: "true"
+  name: oc-cli-sa
+  namespace: oc-cli-pod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oc-cli-deployment
+  namespace: oc-cli-pod
+  labels:
+    app: oc-cli-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oc-cli-app
+  template:
+    metadata:
+      labels:
+        app: oc-cli-app
+    spec:
+      serviceAccountName: oc-cli-sa
+      containers:
+        - name: oc-cli-container
+          image: quay.io/rthollibm/workstation:1.0
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "4Gi"
+          volumeMounts:
+            - mountPath: "/data"
+              name: data-volume
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: oc-cli-data-pvc
