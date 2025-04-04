@@ -1,33 +1,45 @@
-apiVersion: v1
-kind: Namespace
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
 metadata:
-  name: oc-cli-pod
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: oc-cli-data-pvc
-  namespace: oc-cli-pod
+  name: oc-cli
+  namespace: metallb-system
 spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Gi
+  addresses:
+    - 10.0.40.147-10.0.40.148
+  autoAssign: false
 ---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: oc-cli-l2advertisement
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - oc-cli
+--- 
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
     kubernetes.io/enforce-mountable-secrets: "true"
   name: oc-cli-sa
-  namespace: oc-cli-pod
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: oc-cli-data-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: ocs-storagecluster-cephfs
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: oc-cli-deployment
-  namespace: oc-cli-pod
   labels:
     app: oc-cli-app
 spec:
@@ -43,7 +55,7 @@ spec:
       serviceAccountName: oc-cli-sa
       containers:
         - name: oc-cli-container
-          image: quay.io/rthollibm/workstation:1.0
+          image:  quay.io/rthollibm/workstation:1.0
           resources:
             requests:
               cpu: "250m"
@@ -54,7 +66,34 @@ spec:
           volumeMounts:
             - mountPath: "/data"
               name: data-volume
+          securityContext:   
+            capabilities:   
+              add:         
+                - SYS_CHROOT
+                - SYS_ADMIN
+                - NET_ADMIN
+                - NET_BIND_SERVICE
+                - AUDIT_CONTROL
+                - AUDIT_WRITE
       volumes:
         - name: data-volume
           persistentVolumeClaim:
             claimName: oc-cli-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expose-ssh-1022
+  annotations:
+    metallb.universe.tf/address-pool: "oc-cli"
+    metallb.universe.tf/loadBalancerIPs: "10.0.40.147"
+spec:
+  allocateLoadBalancerNodePorts: true
+  ports:
+    - name: ssh
+      protocol: TCP
+      port: 1022
+      targetPort: 1022
+  type: LoadBalancer
+  selector:
+    app: oc-cli-app
