@@ -66,6 +66,7 @@ spec:
           volumeMounts:
             - mountPath: "/data"
               name: data-volume
+          imagePullPolicy: Always
           securityContext:   
             capabilities:   
               add:         
