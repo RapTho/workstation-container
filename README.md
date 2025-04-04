@@ -34,6 +34,12 @@ podman run --privileged -d -p 1022:1022 --name workstation workstation:1.0
 
 ## Deploy the container to OpenShift
 
+Create new namespace
+
+```
+oc new-project oc-cli
+```
+
 change into the files folder and apply the k8s-manifest.yaml file
 
 ```
@@ -44,5 +50,5 @@ oc apply -f k8s-manifest.yaml
 Bind the `anyuid` security context constraint to the new service account
 
 ```
-oc adm policy add-scc-to-user anyuid -z oc-cli-sa
+oc adm policy add-scc-to-user privileged -z oc-cli-sa
 ```
