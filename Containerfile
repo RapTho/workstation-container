@@ -2,7 +2,7 @@ FROM registry.redhat.io/ubi9/ubi:latest
 
 WORKDIR /home/appuser
 
-ARG PACKAGES="openssh-server openssh-clients wget vim podman"
+ARG PACKAGES="openssh-server openssh-clients wget vim podman iputils procps-ng net-tools"
 
 RUN dnf install -y $PACKAGES \
     && dnf clean all
@@ -16,10 +16,13 @@ RUN mkdir -p /usr/local/cpd-cli &&\
     curl -sL https://github.com/IBM/cpd-cli/releases/download/v14.1.2/cpd-cli-linux-EE-14.1.2.tgz -o /tmp/cpd-cli.tar.gz &&\
     tar -C /usr/local/cpd-cli -xzf /tmp/cpd-cli.tar.gz &&\
     rm /tmp/cpd-cli.tar.gz &&\
-    echo "export PATH=$PATH:/usr/local/cpd-cli/cpd-cli-linux-EE-14.1.2-1805" > /home/appuser/.bashrc
+    CPD_CLI_FOLDER=$(ls -d /usr/local/cpd-cli/*) &&\
+    chmod 777 -R /usr/local/cpd-cli/ &&\
+    echo "alias cpd-cli=${CPD_CLI_FOLDER}/cpd-cli" > /home/appuser/.bash_profile &&\
+    echo "alias ll='ls -al'" >> /home/appuser/.bash_profile
     
 # Configure SSH server to listen on port 1022
-RUN sed -i 's/#Port 22/Port 1022/' /etc/ssh/sshd_config &&\
+RUN sed -i 's/#Port 22/Port 2022/' /etc/ssh/sshd_config &&\
     echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config &&\
     echo 'PubkeyAuthentication yes' >> /etc/ssh/sshd_config
 
@@ -27,7 +30,7 @@ RUN sed -i 's/#Port 22/Port 1022/' /etc/ssh/sshd_config &&\
 RUN ssh-keygen -A
 
 RUN groupadd -r appuser &&\ 
-    useradd -g appuser -d /home/appuser -s /bin/bash appuser
+    useradd -g appuser appuser
 
 # Create .ssh directory and set permissions
 RUN mkdir -p /home/appuser/.ssh &&\
@@ -37,6 +40,6 @@ RUN chmod 600 /home/appuser/.ssh/authorized_keys &&\
     chown appuser:appuser -R /home/appuser
     
 # Custom SSH port
-EXPOSE 1022
+EXPOSE 2022
 
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/usr/sbin/sshd", "-D", "-d", "-e"]

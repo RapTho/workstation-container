@@ -1,7 +1,7 @@
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
-  name: oc-cli
+  name: rt-workstation
   namespace: metallb-system
 spec:
   addresses:
@@ -11,23 +11,23 @@ spec:
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: oc-cli-l2advertisement
+  name: rt-workstation-l2advertisement
   namespace: metallb-system
 spec:
   ipAddressPools:
-    - oc-cli
+    - rt-workstation
 --- 
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
     kubernetes.io/enforce-mountable-secrets: "true"
-  name: oc-cli-sa
+  name: rt-workstation-sa
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: oc-cli-data-pvc
+  name: rt-workstation-data-pvc
 spec:
   accessModes:
     - ReadWriteMany
@@ -39,22 +39,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oc-cli-deployment
+  name: rt-workstation-deployment
   labels:
-    app: oc-cli-app
+    app: rt-workstation-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: oc-cli-app
+      app: rt-workstation-app
   template:
     metadata:
       labels:
-        app: oc-cli-app
+        app: rt-workstation-app
     spec:
-      serviceAccountName: oc-cli-sa
+      serviceAccountName: rt-workstation-sa
       containers:
-        - name: oc-cli-container
+        - name: rt-workstation-container
           image:  quay.io/rthollibm/workstation:1.0
           resources:
             requests:
@@ -79,22 +79,22 @@ spec:
       volumes:
         - name: data-volume
           persistentVolumeClaim:
-            claimName: oc-cli-data-pvc
+            claimName: rt-workstation-data-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: expose-ssh-1022
   annotations:
-    metallb.universe.tf/address-pool: "oc-cli"
+    metallb.universe.tf/address-pool: "rt-workstation"
     metallb.universe.tf/loadBalancerIPs: "10.0.40.147"
 spec:
   allocateLoadBalancerNodePorts: true
   ports:
     - name: ssh
       protocol: TCP
-      port: 1022
-      targetPort: 1022
+      port: 2022
+      targetPort: 2022
   type: LoadBalancer
   selector:
-    app: oc-cli-app
+    app: rt-workstation-app
