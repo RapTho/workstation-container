@@ -84,7 +84,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: expose-ssh-1022
+  name: expose-ssh-2022
   annotations:
     metallb.universe.tf/address-pool: "rt-workstation"
     metallb.universe.tf/loadBalancerIPs: "10.0.40.147"
