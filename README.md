@@ -38,7 +38,7 @@ privileged mode for podman is required
 podman run --privileged -d -p 2022:2022 --name workstation workstation:1.0
 ```
 
-## Deploy the container to OpenShift
+## Deploy the container on OpenShift
 
 Create new namespace
 
@@ -46,14 +46,14 @@ Create new namespace
 oc new-project rt-workstation
 ```
 
-change into the files folder and apply the k8s-manifest.yaml file
+change into the files folder and apply the [k8s-manifest.yaml](files/k8s-manifest.yaml) file
 
 ```
 cd files
 oc apply -f k8s-manifest.yaml
 ```
 
-Bind the `anyuid` security context constraint to the new service account
+Bind the `privileged` security context constraint to the new service account
 
 ```
 oc adm policy add-scc-to-user privileged -z rt-workstation-sa
