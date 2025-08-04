@@ -6,6 +6,7 @@ A container with all required CLI tools to use as a workstation on Kubernetes cl
 
 ```
 ssh-keygen -t ed25519 -b 2048 -N '' -f files/id_ed25519
+chmod 600 files/id_ed25519
 ```
 
 ## Build the container iamge
