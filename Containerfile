@@ -42,4 +42,4 @@ RUN chmod 600 /home/appuser/.ssh/authorized_keys &&\
 # Custom SSH port
 EXPOSE 2022
 
-CMD ["/usr/sbin/sshd", "-D", "-d", "-e"]
+CMD ["/usr/sbin/sshd", "-D", "-e"]
