@@ -2,7 +2,7 @@ FROM registry.redhat.io/ubi9/ubi:latest
 
 WORKDIR /home/appuser
 
-ARG PACKAGES="openssh-server openssh-clients wget vim podman iputils procps-ng net-tools jq less vim sudo"
+ARG PACKAGES="openssh-server openssh-clients wget podman iputils procps-ng net-tools jq less vim sudo"
 
 RUN dnf install -y $PACKAGES \
     && dnf clean all
