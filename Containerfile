@@ -2,7 +2,7 @@ FROM registry.redhat.io/ubi9/ubi:latest
 
 WORKDIR /home/appuser
 
-ARG PACKAGES="openssh-server openssh-clients wget vim podman iputils procps-ng net-tools"
+ARG PACKAGES="openssh-server openssh-clients wget vim podman iputils procps-ng net-tools jq less vim sudo"
 
 RUN dnf install -y $PACKAGES \
     && dnf clean all
@@ -31,6 +31,9 @@ RUN ssh-keygen -A
 
 RUN groupadd -r appuser &&\ 
     useradd -g appuser appuser
+
+# Add appuser to sudoers
+RUN echo "appuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Create .ssh directory and set permissions
 RUN mkdir -p /home/appuser/.ssh &&\
